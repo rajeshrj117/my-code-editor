@@ -3,30 +3,32 @@ import CodeMirror from "@uiw/react-codemirror";
 import { python } from "@codemirror/lang-python";
 import { PyodideInterface } from "pyodide";
 
-const { loadPyodide: loader } = require("pyodide");
+declare let loadPyodide: any;
 
 let pyodide: null | PyodideInterface = null;
 
-async function loadPyodide() {
+async function pyodideLoader() {
   if (pyodide === null) {
-    pyodide = await loader();
+    pyodide = await loadPyodide();
   }
   return pyodide as PyodideInterface;
 }
 
 // Function to execute Python code using Pyodide
 async function runPythonCode(code: string) {
-  const { runPython, setStdout } = await loadPyodide();
+  const { runPython, setStdout } = await pyodideLoader();
   let message = "";
-  setStdout({batched: (msg) => {
-    message += msg + "\n";
-  }})
+  setStdout({
+    batched: (msg) => {
+      message += msg + "\n";
+    },
+  });
   runPython(code);
 
   return message;
 }
 
-loadPyodide();
+pyodideLoader();
 
 export default function CodeEditor() {
   const [code, setCode] = useState("");
